@@ -1,144 +1,88 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Practice Writing Pad</title>
-  <style>
-    :root { --accent: #1e66f5; }
-    html, body { height: 100%; margin: 0; background:#f7f7fb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    .wrap { display:flex; flex-direction:column; height:100%; max-width: 900px; margin: 0 auto; padding: 12px; gap:12px; }
-    header { display:flex; align-items:center; justify-content:center; }
-    header h1 { font-size: 18px; margin:0; font-weight:600; color:#222; }
-    .btn { appearance:none; border:1px solid #d0d7de; background:#fff; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:600; }
-    .btn.primary { border-color: var(--accent); background: var(--accent); color:#fff; }
-    .btn.danger { border-color:#ef4444; color:#ef4444; background:#fff; }
-    .btn:active { transform: translateY(1px); }
-    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .pad { flex:1; position:relative; border-radius:16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.08); background:#fff; }
-    .bg { position:absolute; inset:0; }
-    canvas { position:absolute; inset:0; touch-action: none; }
-    footer { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .hint { color:#6b7280; font-size:13px; }
-    .lines{
-      position:absolute; inset:0; pointer-events:none;
-      --line-gap: 30mm; --line-thickness: 2px; --line-color: rgba(0,0,0,.65);
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent calc(var(--line-gap) - var(--line-thickness)),
-        var(--line-color) calc(var(--line-gap) - var(--line-thickness)),
-        var(--line-color) var(--line-gap)
-      );
-    }
-    .flash{ position:fixed; left:50%; top:12px; transform:translateX(-50%); background:#111; color:#fff; padding:8px 12px; border-radius:10px; opacity:0; transition:opacity .25s ease; z-index:50; }
-    .flash.show{ opacity:1; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Practice Writing Pad</title>
+<style>
+:root { --accent: #1e66f5; }
+html, body { height: 100%; margin: 0; background:#f7f7fb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+* { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, button { -webkit-user-select: auto; user-select: auto; }
+.wrap { display:flex; flex-direction:column; height:100%; max-width: 900px; margin: 0 auto; padding: 12px; gap:12px; }
+header { display:flex; align-items:center; justify-content:center; }
+header h1 { font-size: 18px; margin:0; font-weight:600; color:#222; }
+.btn { appearance:none; border:1px solid #ef4444; background:#fff; color:#ef4444; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:600; }
+.btn:active { transform: translateY(1px); }
+.pad { flex:1; position:relative; border-radius:16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.08); background:#fff; }
+.bg { position:absolute; inset:0; background-size:contain; background-repeat:no-repeat; background-position:center top; }
+canvas { position:absolute; inset:0; touch-action: none; }
+footer { display:flex; justify-content:center; align-items:center; }
+.hint { color:#6b7280; font-size:13px; text-align:center; }
+.lines{position:absolute; inset:0; pointer-events:none; --line-gap: 30mm; --line-thickness: 2px; --line-color: rgba(0,0,0,.65); background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line-gap) - var(--line-thickness)), var(--line-color) calc(var(--line-gap) - var(--line-thickness)), var(--line-color) var(--line-gap));}
+.flash{ position:fixed; left:50%; top:12px; transform:translateX(-50%); background:#111; color:#fff; padding:8px 12px; border-radius:10px; opacity:0; transition:opacity .25s ease; z-index:50; }
+.flash.show{ opacity:1; }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header><h1>Please write the sentence here.</h1></header>
+<div class="wrap">
+<header>
+<h1>Writing Practice </h1>
+</header>
 
-    <div class="pad" id="pad">
-      <div class="bg" id="bg"></div>
-      <div class="lines" id="lines"></div>
-      <canvas id="canvas"></canvas>
-    </div>
 
-    <footer>
-      <div class="row"><button class="btn danger" id="clear">Clear</button></div>
-      <div class="row"><button class="btn primary" id="submit">Submit</button></div>
-    </footer>
+<div class="pad" id="pad">
+<div class="bg" id="bg" style="background-image:url('uscis-writing-sheet.png');"></div>
+<div class="lines" id="lines"></div>
+<canvas id="canvas"></canvas>
+</div>
 
-    <div class="hint">Tip: On tablets, use your finger or a stylus. Pinch-zoom the page first, then write.</div>
-    <div class="flash" id="flash">Saved. Ready for the next person.</div>
-  </div>
 
-  <script>
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const pad = document.getElementById('pad');
+<footer>
+<button class="btn" id="clear">Borrar</button>
+</footer>
 
-    const pen = { color: '#0b0b0b', size: 4 };
 
-    function resizeCanvas() {
-      const r = pad.getBoundingClientRect();
-      canvas.style.width = r.width + 'px';
-      canvas.style.height = r.height + 'px';
-      canvas.width = Math.floor(r.width * dpr);
-      canvas.height = Math.floor(r.height * dpr);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-    }
-    new ResizeObserver(resizeCanvas).observe(pad);
-    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+<div class="hint">
+Tip: On tablets, use your finger or a stylus. Pinch-zoom the page first, then write.
+</div>
+<div class="flash" id="flash">Borrado.</div>
+</div>
 
-    let drawing = false;
-    let last = null;
 
-    function getPressure(e){ return e.pressure && e.pressure > 0 ? e.pressure : 1; }
-    function toPoint(e){
-      const rect = canvas.getBoundingClientRect();
-      return { x: (e.clientX - rect.left) * dpr, y: (e.clientY - rect.top) * dpr, p: getPressure(e) };
-    }
-    function line(a,b,w,color){
-      ctx.strokeStyle = color; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-    }
+<script>
+const dpr = Math.max(1, window.devicePixelRatio || 1);
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const pad = document.getElementById('pad');
 
-    canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); drawing = true; last = toPoint(e); });
-    canvas.addEventListener('pointermove', (e) => {
-      if(!drawing) return;
-      const pt = toPoint(e);
-      const base = pen.size * (0.6 + 0.6 * pt.p);
-      if(last){
-        const mid = { x: (last.x + pt.x)/2, y: (last.y + pt.y)/2 };
-        line(last, mid, base, pen.color);
-        last = mid;
-      } else { last = pt; }
-    });
-    canvas.addEventListener('pointerup', () => { drawing = false; last = null; });
-    canvas.addEventListener('pointercancel', () => { drawing = false; last = null; });
 
-    document.getElementById('clear').addEventListener('click', () => {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-    });
+const pen = { color: '#0b0b0b', size: 4 };
 
-    // Export: white background + strokes
-    document.getElementById('submit').addEventListener('click', async () => {
-      const composite = await exportComposite();
-      const a = document.createElement('a');
-      const ts = new Date().toISOString().replace(/[:.]/g,'-');
-      a.download = `writing-${ts}.png`;
-      a.href = composite;
-      a.click();
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      flash();
-    });
 
-    async function exportComposite(){
-      const r = pad.getBoundingClientRect();
-      const off = document.createElement('canvas');
-      off.width = Math.floor(r.width * dpr);
-      off.height = Math.floor(r.height * dpr);
-      const octx = off.getContext('2d');
-      octx.fillStyle = '#fff';
-      octx.fillRect(0, 0, off.width, off.height);
-      octx.drawImage(canvas, 0, 0);
-      return off.toDataURL('image/png');
-    }
+function resizeCanvas() {
+const r = pad.getBoundingClientRect();
+canvas.style.width = r.width + 'px';
+canvas.style.height = r.height + 'px';
+canvas.width = Math.floor(r.width * dpr);
+canvas.height = Math.floor(r.height * dpr);
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+}
 
-    function flash(){
-      const f = document.getElementById('flash');
-      f.classList.add('show');
-      setTimeout(()=>f.classList.remove('show'), 1200);
-    }
 
-    // Register a real service worker file for iPad Safari
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(()=>{});
-    }
-    resizeCanvas();
-  </script>
-</body>
-</html>
+new ResizeObserver(resizeCanvas).observe(pad);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+
+
+let drawing = false;
+let last = null;
+
+
+function getPressure(e){ return e.pressure && e.pressure > 0 ? e.pressure : 1; }
+
+
+function toPoint(e){
+const rect = canvas.getBoundingClientRect();
+return { x: (e.clientX - rect.left) * dpr, y: (e.clientY - rect.top) * dpr, p: getPressure(e) };
+}
