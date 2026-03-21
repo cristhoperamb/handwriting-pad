@@ -2,14 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#f7f7fb" />
   <title>Practice Writing Pad</title>
   <style>
-    :root { --accent: #1e66f5; }
-    html, body { height: 100%; margin: 0; background:#f7f7fb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    body { min-height: 100svh; overscroll-behavior: none; }
-    * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-    button { -webkit-user-select: auto; user-select: auto; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #f7f7fb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      box-sizing: border-box;
+    }
+
+    button {
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
 
     .wrap {
       display: flex;
@@ -17,40 +42,116 @@
       min-height: 100svh;
       max-width: 900px;
       margin: 0 auto;
-      padding: 12px 12px 100px;
+      padding: calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 110px);
       gap: 12px;
     }
-    header { display:flex; align-items:center; justify-content:center; }
-    header h1 { font-size: 18px; margin:0; font-weight:600; color:#222; }
 
-    .btn { appearance:none; border:1px solid #ef4444; background:#fff; color:#ef4444; padding:10px 16px; border-radius:12px; cursor:pointer; font-weight:600; }
-    footer .btn {
-      pointer-events: auto;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 4px;
+      flex: 0 0 auto;
     }
-    .btn:active { transform: translateY(1px); }
 
-    .pad { flex:1; position:relative; border-radius:16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.08); background:#fff; }
-    .bg { position:absolute; inset:0; background-size:contain; background-repeat:no-repeat; background-position:center top; }
-    canvas { position:absolute; inset:0; touch-action: none; }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+    }
+
+    .pad {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      background: #fff;
+      isolation: isolate;
+    }
+
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center top;
+    }
+
+    .lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      --line-gap: 30mm;
+      --line-thickness: 2px;
+      --line-color: rgba(0,0,0,.65);
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--line-gap) - var(--line-thickness)),
+        var(--line-color) calc(var(--line-gap) - var(--line-thickness)),
+        var(--line-color) var(--line-gap)
+      );
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      touch-action: none;
+    }
 
     footer {
       position: fixed;
-      bottom: 16px;
       left: 0;
       right: 0;
+      bottom: 14px;
       display: flex;
       justify-content: center;
       z-index: 1000;
       pointer-events: none;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
-    .lines{ position:absolute; inset:0; pointer-events:none; --line-gap: 30mm; --line-thickness: 2px; --line-color: rgba(0,0,0,.65);
-      background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line-gap) - var(--line-thickness)), var(--line-color) calc(var(--line-gap) - var(--line-thickness)), var(--line-color) var(--line-gap)); }
+    .btn {
+      pointer-events: auto;
+      appearance: none;
+      border: 1px solid #ef4444;
+      background: #fff;
+      color: #ef4444;
+      padding: 14px 28px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 17px;
+      min-width: 140px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+      -webkit-appearance: none;
+    }
 
-    .flash{ position:fixed; left:50%; top:12px; transform:translateX(-50%); background:#111; color:#fff; padding:8px 12px; border-radius:10px; opacity:0; transition:opacity .25s ease; z-index:50; }
-    .flash.show{ opacity:1; }
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .flash {
+      position: fixed;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%);
+      background: #111;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      opacity: 0;
+      transition: opacity .25s ease;
+      z-index: 1100;
+    }
+
+    .flash.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -59,7 +160,7 @@
 
     <div class="pad" id="pad">
       <div class="bg" id="bg" style="background-image:url('uscis-writing-sheet.png');"></div>
-      <div class="lines" id="lines"></div>
+      <div class="lines"></div>
       <canvas id="canvas"></canvas>
     </div>
 
@@ -77,6 +178,8 @@
     const pad = document.getElementById('pad');
 
     const pen = { color: '#0b0b0b', size: 4 };
+    let drawing = false;
+    let last = null;
 
     function resizeCanvas() {
       const r = pad.getBoundingClientRect();
@@ -88,36 +191,135 @@
       ctx.lineJoin = 'round';
     }
 
+    function getPressure(e) {
+      return e.pressure && e.pressure > 0 ? e.pressure : 1;
+    }
+
+    function toPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * dpr,
+        y: (e.clientY - rect.top) * dpr,
+        p: getPressure(e)
+      };
+    }
+
+    function line(a, b, w, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+
+    function startDraw(e) {
+      e.preventDefault();
+      clearTimeout(flashTimer);
+      if (canvas.setPointerCapture && e.pointerId !== undefined) {
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      drawing = true;
+      last = toPoint(e);
+    }
+
+    function moveDraw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const pt = toPoint(e);
+      const base = pen.size * (0.6 + 0.6 * pt.p);
+      if (last) {
+        const mid = { x: (last.x + pt.x) / 2, y: (last.y + pt.y) / 2 };
+        line(last, mid, base, pen.color);
+        last = mid;
+      } else {
+        last = pt;
+      }
+    }
+
+    function endDraw(e) {
+      if (e) e.preventDefault();
+      drawing = false;
+      last = null;
+    }
+
+    if (window.PointerEvent) {
+      canvas.addEventListener('pointerdown', startDraw, { passive: false });
+      canvas.addEventListener('pointermove', moveDraw, { passive: false });
+      canvas.addEventListener('pointerup', endDraw, { passive: false });
+      canvas.addEventListener('pointercancel', endDraw, { passive: false });
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (window.PointerEvent) return;
+      const t = e.touches[0];
+      if (!t) return;
+      startDraw({
+        clientX: t.clientX,
+        clientY: t.clientY,
+        pressure: 1,
+        preventDefault: () => e.preventDefault()
+      });
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (window.PointerEvent) return;
+      const t = e.touches[0];
+      if (!t) return;
+      moveDraw({
+        clientX: t.clientX,
+        clientY: t.clientY,
+        pressure: 1,
+        preventDefault: () => e.preventDefault()
+      });
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (window.PointerEvent) return;
+      endDraw({ preventDefault: () => e.preventDefault() });
+    }, { passive: false });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (window.PointerEvent) return;
+      startDraw(e);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (window.PointerEvent) return;
+      moveDraw(e);
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (window.PointerEvent) return;
+      endDraw(e);
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      flash();
+    });
+
+    let flashTimer = null;
+
+    function flash() {
+      const f = document.getElementById('flash');
+      f.classList.add('show');
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => f.classList.remove('show'), 900);
+    }
+
+    // reduce accidental gestures on older iPads
+    document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+
     new ResizeObserver(resizeCanvas).observe(pad);
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
-
-    let drawing = false; let last = null;
-
-    function getPressure(e){ return e.pressure && e.pressure > 0 ? e.pressure : 1; }
-    function toPoint(e){
-      const rect = canvas.getBoundingClientRect();
-      return { x: (e.clientX - rect.left) * dpr, y: (e.clientY - rect.top) * dpr, p: getPressure(e) };
-    }
-    function line(a,b,w,color){ ctx.strokeStyle = color; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
-
-    canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); drawing = true; last = toPoint(e); });
-    canvas.addEventListener('pointermove', (e) => {
-      if(!drawing) return; const pt = toPoint(e); const base = pen.size * (0.6 + 0.6 * pt.p);
-      if(last){ const mid = { x: (last.x + pt.x)/2, y: (last.y + pt.y)/2 }; line(last, mid, base, pen.color); last = mid; }
-      else { last = pt; }
-    });
-    canvas.addEventListener('pointerup', () => { drawing = false; last = null; });
-    canvas.addEventListener('pointercancel', () => { drawing = false; last = null; });
-
-    document.getElementById('clear').addEventListener('click', () => { ctx.clearRect(0,0,canvas.width,canvas.height); flash(); });
-
     resizeCanvas();
-
-    function flash(){ const f = document.getElementById('flash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'), 1200); }
 
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       const swCode = `
-        const CACHE = 'writing-pad-v3';
+        const CACHE = 'writing-pad-v4';
         self.addEventListener('install', (e) => {
           e.waitUntil(caches.open(CACHE).then(c => c.addAll([
             self.registration.scope,
@@ -129,13 +331,16 @@
         self.addEventListener('fetch', (e) => {
           e.respondWith(
             caches.match(e.request).then(res => res || fetch(e.request).then(r => {
-              const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{}); return r; }).catch(()=>res))
+              const copy = r.clone();
+              caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+              return r;
+            }).catch(() => res))
           );
         });
       `;
       const blob = new Blob([swCode], { type: 'text/javascript' });
       const url = URL.createObjectURL(blob);
-      navigator.serviceWorker.register(url).catch(()=>{});
+      navigator.serviceWorker.register(url).catch(() => {});
     }
   </script>
 </body>
